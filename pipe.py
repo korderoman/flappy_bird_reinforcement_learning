@@ -68,3 +68,6 @@ class Pipe:
             if self.pipes[0]['up'].right<-self.pipe_up.get_width():
                 self.pipes.pop(0)
 
+    def restart(self):
+        self.pipes.clear()
+        self.time_pipe=70

@@ -66,3 +66,11 @@ class Bird:
         if self.flap:
             self.y_vel-=self.flap_velocity*dt
             self.flap=False
+    def restart(self):
+        self.bird_index = 0
+        self.anim_counter = 0
+        self.y_vel = 0
+        self.gravity = 10
+        self.flap_velocity = 250
+        self.flap = False
+        self.create()

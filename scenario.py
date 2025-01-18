@@ -38,5 +38,9 @@ class Scenario:
     def update(self, dt):
         self.update_position_x(dt)
 
+    def restart(self):
+        self.grounds_rect.clear()
+        self.create_rects()
+        #self.update_position_x(0)
 
 

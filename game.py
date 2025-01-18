@@ -5,6 +5,7 @@ from bird import Bird
 from pipe import Pipe
 from scenario import Scenario
 from score import Score
+from restart_game import RestartGame
 
 
 class Game:
@@ -19,6 +20,8 @@ class Game:
         self.bird=Bird(self.screen,self.base_path_files)
         self.pipe=Pipe(self.screen,self.base_path_files,self.speed_x)
         self.score=Score(self.screen,self.base_path_files)
+        self.restart=RestartGame(self.screen,self.base_path_files)
+
         self.score_point=0
         self.is_game_over=False
         self.game_loop()
@@ -27,23 +30,7 @@ class Game:
         pg.quit()
         sys.exit()
 
-    def draw(self):
-        self.scenario.draw()
-        self.bird.draw()
-        self.pipe.draw()
-        self.score.draw()
 
-    def update(self,dt):
-        if not self.is_game_over:
-            self.scenario.update(dt)
-            self.bird.update(dt)
-            self.pipe.update(dt)
-            self.score.update(self.score_point)
-
-    def check_events(self,dt):
-        self.check_score(dt)
-        self.check_event_collisions()
-        self.check_event_keyboard()
 
 
     def check_event_keyboard(self):
@@ -53,6 +40,9 @@ class Game:
                 self.check_event_quit()
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 self.bird.flap_by_keyboard()
+            if event.type == pg.MOUSEBUTTONUP and self.is_game_over:
+                if self.restart.check_if_click_restart(pg.mouse.get_pos()):
+                    self.restart_game()
 
     def check_event_collisions(self):
         bird_collision_pipe=self.check_bird_collision_with_pipe()
@@ -97,6 +87,39 @@ class Game:
     def check_score_top(self):
         if self.bird.bird_rect.midtop[1] <=0:
             self.score_point=round(self.score_point-0.5,1)
+# ---------------------------------------------- MÉTODOS PRINCIPALES DEL JUEGO ------------------------------------
+    def restart_game(self):
+        self.score_point=0
+        self.bird.restart()
+        self.pipe.restart()
+        self.score.restart()
+        self.scenario.restart()
+        self.is_game_over=False
+
+    def draw(self):
+        self.scenario.draw()
+        self.bird.draw()
+        self.pipe.draw()
+        self.score.draw()
+        self.restart.draw(self.is_game_over)
+
+    def update(self, dt):
+        if not self.is_game_over:
+            self.scenario.update(dt)
+            self.bird.update(dt)
+            self.pipe.update(dt)
+            self.score.update(self.score_point)
+
+    def check_events(self, dt):
+        self.check_score(dt)
+        self.check_event_collisions()
+        self.check_event_keyboard()
+
+    def restart(self):
+        self.bird.restart()
+        self.pipe.restart()
+        self.score_point=0
+        self.is_game_over=False
 
     def game_loop(self):
         last_time = time.time()
