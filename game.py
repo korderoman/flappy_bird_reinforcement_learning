@@ -1,5 +1,6 @@
 import pygame as pg
 import sys, time
+import os
 
 from bird import Bird
 from pipe import Pipe
@@ -9,22 +10,23 @@ from restart_game import RestartGame
 
 
 class Game:
-    def __init__(self, show_game=False):
+    def __init__(self, show_game=False, pure_game=True, flap_velocity=250):
         self.show_game = show_game
-        self.screen = pg.display.set_mode((288, 512))
-        self.base_path_files=""
+        self.height = 512
+        self.width = 288
+        self.screen = pg.display.set_mode((self.width, self.height))
+        self.base_path_files=os.path.dirname(os.path.abspath(__file__))+"/"
         self.fps=60
         self.clock=pg.time.Clock()
         self.speed_x=200
         self.scenario = Scenario(self.screen,self.base_path_files, self.speed_x)
-        self.bird=Bird(self.screen,self.base_path_files)
+        self.bird=Bird(self.screen,self.base_path_files, flap_velocity)
         self.pipe=Pipe(self.screen,self.base_path_files,self.speed_x)
         self.score=Score(self.screen,self.base_path_files)
         self.restart=RestartGame(self.screen,self.base_path_files)
-
         self.score_point=0
-        self.is_game_over=False
-        self.game_loop()
+        self.is_game_over=True
+        self.game_loop(pure_game)
 
     def check_event_quit(self):
         pg.quit()
@@ -33,12 +35,12 @@ class Game:
 
 
 
-    def check_event_keyboard(self):
+    def check_event_keyboard(self, pure_game):
         for event in pg.event.get():
             # Se configura el evento de salida
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 self.check_event_quit()
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and pure_game:
                 self.bird.flap_by_keyboard()
             if event.type == pg.MOUSEBUTTONUP and self.is_game_over:
                 if self.restart.check_if_click_restart(pg.mouse.get_pos()):
@@ -102,6 +104,9 @@ class Game:
         self.pipe.draw()
         self.score.draw()
         self.restart.draw(self.is_game_over)
+    def flap_by_action(self, action):
+        if action==1 and not self.is_game_over:
+            self.bird.flap_by_keyboard()
 
     def update(self, dt):
         if not self.is_game_over:
@@ -110,10 +115,10 @@ class Game:
             self.pipe.update(dt)
             self.score.update(self.score_point)
 
-    def check_events(self, dt):
+    def check_events(self, dt,pure_game):
         self.check_score(dt)
         self.check_event_collisions()
-        self.check_event_keyboard()
+        self.check_event_keyboard(pure_game)
 
     def restart(self):
         self.bird.restart()
@@ -121,14 +126,34 @@ class Game:
         self.score_point=0
         self.is_game_over=False
 
-    def game_loop(self):
+    def game_loop(self, pure_game):
+        if pure_game:
+            self.game_loop_pure_game()
+
+
+    def game_loop_no_pure_game(self,dt,action):
+        """
+        Utilizado para procesos de entrenamiento
+        :param dt: Intervalo de tiempo
+        :param action: Acción a realizar (0 o 1)
+        :return:
+        """
+        self.check_events(dt, pure_game=False)
+        self.flap_by_action(action)
+        if self.show_game:
+            self.draw()
+            self.update(dt)
+            pg.display.update()
+            self.clock.tick(self.fps)
+
+    def game_loop_pure_game(self):
         last_time = time.time()
         while True:
             new_time = time.time()
-            dt=new_time-last_time
+            dt = new_time - last_time
             last_time = new_time
 
-            self.check_events(dt)
+            self.check_events(dt, pure_game=True)
             if self.show_game:
                 self.draw()
                 self.update(dt)
@@ -136,5 +161,6 @@ class Game:
                 self.clock.tick(self.fps)
 
 
+
 pg.init()
-game=Game(show_game=True)
+#game=Game(show_game=True)

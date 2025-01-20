@@ -1,7 +1,8 @@
 import pygame as pg
 
 class Bird:
-    def __init__(self,screen, base_path_files):
+    def __init__(self,screen, base_path_files, flap_velocity=250):
+        self.start_flap_velocity = flap_velocity
         self.screen = screen
         self.base_path_files = base_path_files
         self.bird_index=0
@@ -11,7 +12,7 @@ class Bird:
         self.anim_counter=0
         self.y_vel=0
         self.gravity=10
-        self.flap_velocity=250
+        self.flap_velocity=self.start_flap_velocity
         self.flap=False
         self.create()
 
@@ -31,12 +32,12 @@ class Bird:
         self.update_when_position_is_zero()
 
     def update_when_position_is_zero(self):
-        if self.bird_rect.y <= 0 and self.flap_velocity == 250:
+        if self.bird_rect.y <= 0 and self.flap_velocity == self.start_flap_velocity:
             self.bird_rect.y = 0
             self.flap_velocity = 0
             self.y_vel = 0
         elif self.bird_rect.y > 0 and self.flap_velocity == 0:
-            self.flap_velocity = 250
+            self.flap_velocity = self.start_flap_velocity
             
     def update_animation(self):
         if self.anim_counter == 5:
@@ -51,7 +52,7 @@ class Bird:
         self.anim_counter += 1
 
     def update_position(self,dt):
-        self.y_vel += self.gravity * dt
+        self.y_vel += self.gravity*dt
         self.bird_rect.y+=self.y_vel
 
     def reset(self):
@@ -71,6 +72,6 @@ class Bird:
         self.anim_counter = 0
         self.y_vel = 0
         self.gravity = 10
-        self.flap_velocity = 250
+        self.flap_velocity = self.start_flap_velocity
         self.flap = False
         self.create()
