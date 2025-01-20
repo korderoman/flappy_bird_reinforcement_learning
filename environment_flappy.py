@@ -24,5 +24,13 @@ class EnvironmentFlappy:
         new_time = time.time()
         dt = new_time - self.last_time
         self.last_time = new_time
-        self.env.game_loop_no_pure_game(dt,action)
+        reward=self.env.game_loop_no_pure_game(dt,action)
+        return self.calculate_step_data(reward)
+
+    def calculate_step_data(self, reward):
+        state=0
+        reward=reward
+        done=self.env.is_game_over
+
+        return state,reward,done
 

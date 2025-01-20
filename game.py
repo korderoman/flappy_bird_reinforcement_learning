@@ -11,6 +11,13 @@ from restart_game import RestartGame
 
 class Game:
     def __init__(self, show_game=False, pure_game=True, flap_velocity=250):
+        """
+        Clase que representa el juego de Flappy Bird
+        :param show_game: Hace que el juego se muestre
+        :param pure_game:  Hace que el juego solo sirva como juego, cuando es false es posible extraer data
+        para la medición del entorno
+        :param flap_velocity: Velocidad de flap (puede ser afectada para el proceso de aprendizaje)
+        """
         self.show_game = show_game
         self.height = 512
         self.width = 288
@@ -22,7 +29,7 @@ class Game:
         self.scenario = Scenario(self.screen,self.base_path_files, self.speed_x)
         self.bird=Bird(self.screen,self.base_path_files, flap_velocity)
         self.pipe=Pipe(self.screen,self.base_path_files,self.speed_x)
-        self.score=Score(self.screen,self.base_path_files)
+        self.score=Score(self.screen,self.base_path_files,self.bird, self.pipe)
         self.restart=RestartGame(self.screen,self.base_path_files)
         self.score_point=0
         self.is_game_over=True
@@ -68,12 +75,16 @@ class Game:
             if self.bird.bird_rect.colliderect(self.pipe.pipes[0]['up']):
                 return True
 
+    def check_score_still_alive(self):
+        # Puntaje por cada momento en que esté vivo
+        self.score_point = round(self.score_point + 0.1, 1)
+
     def check_score(self, dt):
         if not self.is_game_over:
-            #Puntaje por cada momento en que esté vivo
-            self.score_point=round(self.score_point+0.1,1)
+            self.check_score_still_alive()
             #Puntaje por cada pipe que haya sido superado
             self.check_score_pipe()
+            #Puntaje por tocar el techo
             self.check_score_top()
 
     def check_score_pipe(self):
@@ -139,13 +150,14 @@ class Game:
         :return:
         """
         self.check_events(dt, pure_game=False)
+
         self.flap_by_action(action)
         if self.show_game:
             self.draw()
             self.update(dt)
             pg.display.update()
             self.clock.tick(self.fps)
-
+        return self.score.check_score_by_step(self.is_game_over)
     def game_loop_pure_game(self):
         last_time = time.time()
         while True:
